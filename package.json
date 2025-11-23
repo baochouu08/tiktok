@@ -1,0 +1,20 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "seo": "node seo-generator/index.js",
+    "seo:all": "node seo-generator/index.js --all",
+    "seo:multi": "node seo-generator/index.js --multi",
+    "seo:simple": "node seo-generator/generate.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Multi-language SEO content generator with Gemini AI",
+  "dependencies": {
+    "@google/genai": "^1.30.0"
+  }
+}

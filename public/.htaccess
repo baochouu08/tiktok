@@ -1,0 +1,108 @@
+# URL Rewriting for Multilingual SEO
+# Pattern: /{lang}/ or /{lang}/page
+# Supported languages: ar, de, es, fr, id, ja, ko, th, vi, zh
+# English (en) uses bare URLs without language prefix
+
+RewriteEngine On
+RewriteBase /
+
+# Sitemap rewrite - serve sitemap.xml as PHP
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
+# Language-specific routes (non-English)
+# Homepage: /{lang}/ -> index.php?lang={lang}
+RewriteRule ^(ar|de|es|fr|id|ja|ko|th|vi|zh)/?$ index.php?lang=$1 [L,QSA]
+
+# Download pages without .php: /{lang}/download-{platform} -> download-{platform}.php?lang={lang}
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(ar|de|es|fr|id|ja|ko|th|vi|zh)/download-([a-z]+)/?$ download-$2.php?lang=$1 [L,QSA]
+
+# Download pages with .php: /{lang}/download-{platform}.php -> download-{platform}.php?lang={lang}
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(ar|de|es|fr|id|ja|ko|th|vi|zh)/download-([a-z]+)\.php$ download-$2.php?lang=$1 [L,QSA]
+
+# Generic pages without .php: /{lang}/{page} -> {page}.php?lang={lang}
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(ar|de|es|fr|id|ja|ko|th|vi|zh)/([a-z-]+)/?$ $2.php?lang=$1 [L,QSA]
+
+# Generic pages with .php: /{lang}/{page}.php -> {page}.php?lang={lang}
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(ar|de|es|fr|id|ja|ko|th|vi|zh)/([a-z-]+)\.php$ $2.php?lang=$1 [L,QSA]
+
+# English routes use bare URLs (no language prefix)
+# / = index.php (English)
+# /download-tiktok.php = download-tiktok.php (English)
+
+<IfModule mod_headers.c>
+    # Cache static assets for 1 year (with version query strings)
+    <FilesMatch "\.(css|js|jpg|jpeg|png|gif|svg|webp|woff|woff2|ttf|eot|ico)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+        Header append Vary "Accept-Encoding"
+    </FilesMatch>
+
+    # Cache HTML pages for 1 hour
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "public, max-age=3600, must-revalidate"
+        Header append Vary "Accept-Encoding"
+    </FilesMatch>
+
+    # Don't cache PHP files (APIs, dynamic content)
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+
+    # Security headers
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Enable GZIP compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml image/svg+xml
+
+    # Set compression level (9 is max)
+    DeflateCompressionLevel 9
+
+    # Don't compress already-compressed files
+    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|webp)$ no-gzip
+
+    # Force deflate for mangled headers
+    <IfModule mod_setenvif.c>
+        BrowserMatch ^Mozilla/4 gzip-only-text/html
+        BrowserMatch ^Mozilla/4\.0[678] no-gzip
+        BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+    </IfModule>
+</IfModule>
+
+# Brotli compression (preferred over GZIP)
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
+    BrotliCompressionQuality 11
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# Cache-Control headers
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|svg|png|jpg|jpeg|webp)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>
